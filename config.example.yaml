@@ -1,0 +1,82 @@
+server:
+  listen: "0.0.0.0:8080"
+  workers: 4
+  request_timeout_secs: 30
+  keepalive_secs: 75
+  max_body_size: 10485760
+
+tls:
+  enabled: false
+  cert_path: "./certs/cert.pem"
+  key_path: "./certs/key.pem"
+
+routes:
+  - id: api
+    path: "/api/**"
+    methods: ["GET", "POST", "PUT", "DELETE"]
+    upstream:
+      type: static
+      url: "http://localhost:3000"
+    strip_prefix: "/api"
+    retry:
+      max_attempts: 3
+      backoff_ms: 100
+    timeout_ms: 30000
+    cache_enabled: true
+    auth_required: false
+
+  - id: health
+    path: "/health"
+    methods: ["GET"]
+    upstream:
+      type: static
+      url: "http://localhost:3000"
+
+rate_limit:
+  enabled: true
+  requests_per_second: 100
+  burst_size: 200
+  key_strategy: ip
+
+cors:
+  enabled: true
+  allow_origins: ["*"]
+  allow_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+  allow_headers: ["*"]
+  allow_credentials: false
+  max_age: 3600
+
+auth:
+  enabled: false
+  type: jwt
+  secret: "change-me-in-production"
+  excluded_paths:
+    - "/health"
+
+cache:
+  enabled: true
+  type: memory
+  default_ttl_secs: 300
+  max_capacity: 10000
+  cacheable_methods: ["GET"]
+  cacheable_statuses: [200, 301, 404]
+  key_strategy: uri_with_method
+  excluded_paths:
+    - "/api/auth/**"
+
+metrics:
+  enabled: true
+  listen: "0.0.0.0:9090"
+  endpoint: "/metrics"
+
+logging:
+  level: "info"
+  format: json
+  output: stdout
+  request_id_header: "x-request-id"
+
+pool:
+  enabled: true
+  max_connections: 100
+  idle_timeout_secs: 60
+  connection_timeout_ms: 5000
