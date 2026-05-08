@@ -23,7 +23,6 @@ pub struct ProxyClient {
 impl ProxyClient {
     pub fn new() -> Self {
         let client = reqwest::Client::builder()
-            .http2_prior_knowledge()
             .pool_max_idle_per_host(100)
             .pool_idle_timeout(Duration::from_secs(60))
             .tcp_keepalive(Duration::from_secs(75))
@@ -38,7 +37,6 @@ impl ProxyClient {
 
     pub fn with_pool(max_idle: usize, idle_timeout: Duration) -> Self {
         let client = reqwest::Client::builder()
-            .http2_prior_knowledge()
             .pool_max_idle_per_host(max_idle)
             .pool_idle_timeout(idle_timeout)
             .tcp_keepalive(Duration::from_secs(75))
